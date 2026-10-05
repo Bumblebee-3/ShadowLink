@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ShadowLink | Command Center</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { ink: '#10202a', paper: '#f5f7f4', mint: '#b7edcf', alert: '#ff7657', steel: '#58717c' },
+          fontFamily: { sans: ['Manrope', 'ui-sans-serif', 'system-ui'] }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="/dashboard/styles.css">
+</head>
+<body class="bg-paper text-ink antialiased">
+  <div class="min-h-screen lg:flex">
+    <aside class="sidebar w-full shrink-0 border-b border-ink/10 bg-ink text-white lg:sticky lg:top-0 lg:h-screen lg:w-72 lg:border-b-0 lg:border-r">
+      <div class="flex h-full flex-col p-5 lg:p-7">
+        <div class="flex items-center gap-3">
+          <div class="mark-grid grid h-11 w-11 place-items-center rounded-xl bg-mint text-ink"><span class="text-lg font-black">B</span></div>
+          <div><p class="text-[11px] font-bold uppercase tracking-[.24em] text-mint">Security layer</p><h1 class="text-xl font-extrabold tracking-tight">ShadowLink</h1></div>
+        </div>
+        <div class="mt-10 hidden text-[11px] font-bold uppercase tracking-[.2em] text-white/45 lg:block">Command center</div>
+        <nav class="mt-3 grid grid-cols-3 gap-1 sm:grid-cols-6 lg:block lg:space-y-1" aria-label="Dashboard sections">
+          <button class="nav-item active" data-view="overview">Overview <span>01</span></button>
+          <button class="nav-item" data-view="events">Live events <span>02</span></button>
+          <button class="nav-item" data-view="incidents">Incidents <span>03</span></button>
+          <button class="nav-item" data-view="graph">Threat graph <span>04</span></button>
+          <button class="nav-item" data-view="actions">Shield actions <span>05</span></button>
+          <button class="nav-item" data-view="quarantine">Quarantine <span>06</span></button>
+          <button class="nav-item" data-view="connections">Connections <span>07</span></button>
+        </nav>
+        <div class="mt-auto hidden rounded-2xl border border-white/10 bg-white/5 p-4 lg:block">
+          <div class="flex items-center gap-2"><span class="pulse-dot"></span><span class="text-sm font-bold">Protection active</span></div>
+          <p class="mt-2 text-xs leading-5 text-white/50">Local detection and deterministic shield policy are online.</p>
+        </div>
+      </div>
+    </aside>
+
+    <main class="min-w-0 flex-1">
+      <header class="flex flex-wrap items-center justify-between gap-4 border-b border-ink/10 bg-paper/90 px-5 py-5 backdrop-blur sm:px-8 lg:px-12">
+        <div><p class="text-xs font-bold uppercase tracking-[.2em] text-steel">Security operations</p><h2 id="view-title" class="mt-1 text-2xl font-extrabold tracking-tight sm:text-3xl">Security overview</h2></div>
+        <div class="flex items-center gap-3"><span id="last-sync" class="text-xs text-steel">Syncing...</span><button id="refresh" class="icon-button" title="Refresh data" aria-label="Refresh data">↻</button></div>
+      </header>
+
+      <div id="app" class="mx-auto max-w-[1500px] space-y-6 px-5 py-6 sm:px-8 lg:px-12 lg:py-8">
+        <section data-panel="overview" class="view-panel space-y-6">
+          <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="stat-card"><span class="stat-label">Events observed</span><strong id="stat-events">0</strong><span class="stat-foot">last 100 records</span></div>
+            <div class="stat-card"><span class="stat-label">Threat detections</span><strong id="stat-threats">0</strong><span class="stat-foot">high and critical</span></div>
+            <div class="stat-card accent"><span class="stat-label">Blocked</span><strong id="stat-blocked">0</strong><span class="stat-foot">shield decisions</span></div>
+            <div class="stat-card"><span class="stat-label">Current risk</span><strong id="stat-risk">LOW</strong><span class="stat-foot">highest observed</span></div>
+          </div>
+          <div class="grid gap-6 xl:grid-cols-[1.25fr_.75fr]">
+            <section class="surface overflow-hidden"><div class="section-heading"><div><span class="eyebrow">Live feed</span><h3>Recent activity</h3></div><button class="text-button" data-view-link="events">View all →</button></div><div id="overview-events" class="divide-y divide-ink/10"></div></section>
+            <section class="surface"><div class="section-heading"><div><span class="eyebrow">Attention required</span><h3>Active incidents</h3></div><button class="text-button" data-view-link="incidents">Open queue →</button></div><div id="overview-incidents" class="space-y-3"></div></section>
+          </div>
+          <section class="surface"><div class="section-heading"><div><span class="eyebrow">Protection log</span><h3>Latest shield action</h3></div><button class="text-button" data-view-link="actions">View actions →</button></div><div id="overview-action"></div></section>
+        </section>
+
+        <section data-panel="events" class="view-panel hidden"><div class="surface overflow-hidden"><div class="section-heading"><div><span class="eyebrow">Event stream</span><h3>Live events</h3></div><span class="status-chip">Polling every 3s</span></div><div class="table-wrap"><table><thead><tr><th>Time</th><th>Source</th><th>Type</th><th>Actor</th><th>Risk</th><th>Action</th></tr></thead><tbody id="events-table"></tbody></table></div></div></section>
+
+        <section data-panel="incidents" class="view-panel hidden"><div class="section-heading page-heading"><div><span class="eyebrow">Correlated sequences</span><h3>Incidents</h3></div></div><div id="incidents-list" class="grid gap-5 xl:grid-cols-2"></div></section>
+
+        <section data-panel="graph" class="view-panel hidden"><div class="grid gap-6 xl:grid-cols-[1fr_.65fr]"><div class="surface"><div class="section-heading"><div><span class="eyebrow">Relationships</span><h3>Threat graph</h3></div><span id="graph-count" class="status-chip">0 nodes</span></div><div id="graph-canvas" class="graph-canvas"></div></div><div class="surface"><div class="section-heading"><div><span class="eyebrow">Evidence</span><h3>Connected edges</h3></div></div><div id="graph-edges" class="space-y-3"></div></div></div></section>
+
+        <section data-panel="actions" class="view-panel hidden"><div class="surface overflow-hidden"><div class="section-heading page-heading"><div><span class="eyebrow">Enforcement history</span><h3>Shield actions</h3></div></div><div class="table-wrap"><table><thead><tr><th>Time</th><th>Action</th><th>Event</th><th>Reason</th><th>Risk</th></tr></thead><tbody id="actions-table"></tbody></table></div></div></section>
+
+        <section data-panel="quarantine" class="view-panel hidden"><div class="section-heading page-heading"><div><span class="eyebrow">Stopped destinations</span><h3>Quarantine</h3></div></div><div id="quarantine-list" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3"></div></section>
+
+        <section data-panel="connections" class="view-panel hidden"><div class="section-heading page-heading"><div><span class="eyebrow">Adapter layer</span><h3>Connections</h3></div></div><div id="connections-list" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3"></div></section>
+      </div>
+    </main>
+  </div>
+  <div id="event-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-card"><button id="modal-close" class="modal-close" aria-label="Close event details">×</button><span class="eyebrow">Event details</span><h3 id="modal-title" class="mt-2 text-2xl font-extrabold">Event</h3><div id="modal-body" class="mt-5"></div></div></div>
+  <script src="/dashboard/dashboard.js"></script>
+</body>
+</html>
